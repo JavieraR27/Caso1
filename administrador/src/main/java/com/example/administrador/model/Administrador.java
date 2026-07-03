@@ -7,10 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-/**
- * Administrador del marketplace. La password se guarda en texto plano en
- * EP2; BCrypt/JWT quedan en el backlog EA3.
- */
+
 @Entity
 @Table(name = "administradores")
 public class Administrador {
