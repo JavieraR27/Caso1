@@ -4,9 +4,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Reporte semanal persistido, con su desglose por categoría.
- */
 public record ReporteResponse(
         int id,
         int adminId,
