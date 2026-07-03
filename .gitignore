@@ -34,3 +34,6 @@ build/
 
 ### Docker / compose ###
 .env
+
+### Estado local de la demo ###
+scripts/.demo-cliente-n
