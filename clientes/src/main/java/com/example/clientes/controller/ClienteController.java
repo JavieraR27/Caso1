@@ -17,10 +17,12 @@ import com.example.clientes.dto.CreateClienteRequest;
 import com.example.clientes.dto.CreateDireccionRequest;
 import com.example.clientes.dto.DireccionResponse;
 import com.example.clientes.dto.LoginRequest;
+import com.example.clientes.dto.LoginResponse;
 import com.example.clientes.dto.UpdateClienteRequest;
 import com.example.clientes.mapper.ClienteMapper;
 import com.example.clientes.model.Cliente;
 import com.example.clientes.model.Direccion;
+import com.example.clientes.security.JwtUtil;
 import com.example.clientes.service.ClienteService;
 
 import jakarta.validation.Valid;
@@ -30,9 +32,11 @@ import jakarta.validation.Valid;
 public class ClienteController {
 
     private final ClienteService clienteService;
+    private final JwtUtil jwtUtil;
 
-    public ClienteController(ClienteService clienteService) {
+    public ClienteController(ClienteService clienteService, JwtUtil jwtUtil) {
         this.clienteService = clienteService;
+        this.jwtUtil = jwtUtil;
     }
 
     @PostMapping
@@ -48,9 +52,10 @@ public class ClienteController {
      * (migra al cliente histórico en su primer ingreso).
      */
     @PostMapping("/login")
-    public ResponseEntity<ClienteResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         Cliente cliente = clienteService.login(request.email(), request.password());
-        return ResponseEntity.ok(ClienteMapper.toResponse(cliente));
+        String token = jwtUtil.generar(String.valueOf(cliente.getId()), "CLIENTE");
+        return ResponseEntity.ok(new LoginResponse(token, ClienteMapper.toResponse(cliente)));
     }
 
     @GetMapping("{id}")

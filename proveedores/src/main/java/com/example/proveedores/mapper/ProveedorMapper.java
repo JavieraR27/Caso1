@@ -17,6 +17,7 @@ public class ProveedorMapper {
         proveedor.setRut(request.rut());
         proveedor.setRazonSocial(request.razonSocial());
         proveedor.setEmail(request.email());
+        proveedor.setPassword(request.password());
         proveedor.setTelefono(request.telefono());
         return proveedor;
     }

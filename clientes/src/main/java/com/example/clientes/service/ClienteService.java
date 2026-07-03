@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
@@ -26,13 +27,16 @@ public class ClienteService {
     private final ClienteRepository clienteRepository;
     private final DireccionRepository direccionRepository;
     private final WebClient legacyWebClient;
+    private final PasswordEncoder passwordEncoder;
 
     public ClienteService(ClienteRepository clienteRepository,
             DireccionRepository direccionRepository,
-            @Qualifier("legacyWebClient") WebClient legacyWebClient) {
+            @Qualifier("legacyWebClient") WebClient legacyWebClient,
+            PasswordEncoder passwordEncoder) {
         this.clienteRepository = clienteRepository;
         this.direccionRepository = direccionRepository;
         this.legacyWebClient = legacyWebClient;
+        this.passwordEncoder = passwordEncoder;
     }
 
     /**
@@ -43,6 +47,7 @@ public class ClienteService {
             throw new BusinessConflictException(
                     "Ya existe un cliente con el email: " + cliente.getEmail());
         }
+        cliente.setPassword(passwordEncoder.encode(cliente.getPassword()));
         cliente.setTipo(TipoCliente.NUEVO);
         cliente.setFechaCreacion(LocalDateTime.now());
         return clienteRepository.save(cliente);
@@ -58,7 +63,7 @@ public class ClienteService {
         Cliente local = clienteRepository.findByEmail(email).orElse(null);
 
         if (local != null) {
-            if (!local.getPassword().equals(password)) {
+            if (!passwordEncoder.matches(password, local.getPassword())) {
                 throw new BusinessConflictException(
                         "Credenciales inválidas para el email: " + email);
             }
@@ -72,7 +77,8 @@ public class ClienteService {
 
         Cliente migrado = new Cliente();
         migrado.setEmail(legacy.email());
-        migrado.setPassword(password);
+        // La password legacy (texto plano) se re-almacena cifrada con BCrypt
+        migrado.setPassword(passwordEncoder.encode(password));
         migrado.setNombre(legacy.nombre());
         migrado.setTipo(TipoCliente.MIGRADO);
         migrado.setLegacyId(legacy.id());

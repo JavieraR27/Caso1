@@ -3,6 +3,7 @@ package com.example.proveedores.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.proveedores.exception.BusinessConflictException;
@@ -18,11 +19,14 @@ public class ProveedorService {
 
     private final ProveedorRepository proveedorRepository;
     private final DocumentoProveedorRepository documentoProveedorRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public ProveedorService(ProveedorRepository proveedorRepository,
-            DocumentoProveedorRepository documentoProveedorRepository) {
+            DocumentoProveedorRepository documentoProveedorRepository,
+            PasswordEncoder passwordEncoder) {
         this.proveedorRepository = proveedorRepository;
         this.documentoProveedorRepository = documentoProveedorRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     /**
@@ -38,9 +42,30 @@ public class ProveedorService {
             throw new BusinessConflictException(
                     "Ya existe un proveedor con el email: " + proveedor.getEmail());
         }
+        proveedor.setPassword(passwordEncoder.encode(proveedor.getPassword()));
         proveedor.setEstado(EstadoProveedor.POSTULADO);
         proveedor.setFechaPostulacion(LocalDateTime.now());
         return proveedorRepository.save(proveedor);
+    }
+
+    /**
+     * Login del vendedor (rol PROVEEDOR). Solo un proveedor APROBADO puede
+     * operar en el marketplace.
+     */
+    public Proveedor login(String email, String password) {
+        Proveedor proveedor = proveedorRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Proveedor no encontrado para el email: " + email));
+        if (!passwordEncoder.matches(password, proveedor.getPassword())) {
+            throw new BusinessConflictException(
+                    "Credenciales inválidas para el email: " + email);
+        }
+        if (proveedor.getEstado() != EstadoProveedor.APROBADO) {
+            throw new BusinessConflictException(
+                    "El proveedor aún no está APROBADO (estado actual: "
+                            + proveedor.getEstado() + ")");
+        }
+        return proveedor;
     }
 
     public List<Proveedor> listar(EstadoProveedor estado) {

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
@@ -37,19 +38,22 @@ public class AdministradorService {
     private final WebClient proveedoresWebClient;
     private final WebClient ventasWebClient;
     private final WebClient notificacionesWebClient;
+    private final PasswordEncoder passwordEncoder;
 
     public AdministradorService(AdministradorRepository administradorRepository,
             AccionAdminRepository accionAdminRepository,
             ReporteSemanalRepository reporteSemanalRepository,
             @Qualifier("proveedoresWebClient") WebClient proveedoresWebClient,
             @Qualifier("ventasWebClient") WebClient ventasWebClient,
-            @Qualifier("notificacionesWebClient") WebClient notificacionesWebClient) {
+            @Qualifier("notificacionesWebClient") WebClient notificacionesWebClient,
+            PasswordEncoder passwordEncoder) {
         this.administradorRepository = administradorRepository;
         this.accionAdminRepository = accionAdminRepository;
         this.reporteSemanalRepository = reporteSemanalRepository;
         this.proveedoresWebClient = proveedoresWebClient;
         this.ventasWebClient = ventasWebClient;
         this.notificacionesWebClient = notificacionesWebClient;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // ---- Cuenta del administrador ----
@@ -59,6 +63,7 @@ public class AdministradorService {
             throw new BusinessConflictException(
                     "Ya existe un administrador con el username: " + admin.getUsername());
         }
+        admin.setPassword(passwordEncoder.encode(admin.getPassword()));
         return administradorRepository.save(admin);
     }
 
@@ -66,7 +71,7 @@ public class AdministradorService {
         Administrador admin = administradorRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Administrador no encontrado: " + username));
-        if (!admin.getPassword().equals(password)) {
+        if (!passwordEncoder.matches(password, admin.getPassword())) {
             throw new BusinessConflictException(
                     "Credenciales inválidas para el administrador: " + username);
         }

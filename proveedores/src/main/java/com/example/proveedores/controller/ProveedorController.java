@@ -17,11 +17,14 @@ import com.example.proveedores.dto.CambioEstadoRequest;
 import com.example.proveedores.dto.CreateDocumentoRequest;
 import com.example.proveedores.dto.CreateProveedorRequest;
 import com.example.proveedores.dto.DocumentoResponse;
+import com.example.proveedores.dto.LoginProveedorRequest;
+import com.example.proveedores.dto.LoginResponse;
 import com.example.proveedores.dto.ProveedorResponse;
 import com.example.proveedores.mapper.ProveedorMapper;
 import com.example.proveedores.model.DocumentoProveedor;
 import com.example.proveedores.model.EstadoProveedor;
 import com.example.proveedores.model.Proveedor;
+import com.example.proveedores.security.JwtUtil;
 import com.example.proveedores.service.ProveedorService;
 
 import jakarta.validation.Valid;
@@ -31,9 +34,22 @@ import jakarta.validation.Valid;
 public class ProveedorController {
 
     private final ProveedorService proveedorService;
+    private final JwtUtil jwtUtil;
 
-    public ProveedorController(ProveedorService proveedorService) {
+    public ProveedorController(ProveedorService proveedorService, JwtUtil jwtUtil) {
         this.proveedorService = proveedorService;
+        this.jwtUtil = jwtUtil;
+    }
+
+    /**
+     * Login del vendedor (emite JWT con rol PROVEEDOR; exige estado APROBADO).
+     */
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(
+            @Valid @RequestBody LoginProveedorRequest request) {
+        Proveedor proveedor = proveedorService.login(request.email(), request.password());
+        String token = jwtUtil.generar(String.valueOf(proveedor.getId()), "PROVEEDOR");
+        return ResponseEntity.ok(new LoginResponse(token, ProveedorMapper.toResponse(proveedor)));
     }
 
     @PostMapping

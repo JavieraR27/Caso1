@@ -17,6 +17,9 @@ public record CreateProveedorRequest(
         @Email(message = "El email no tiene un formato válido")
         String email,
 
+        @NotBlank(message = "La password no puede ser vacía")
+        String password,
+
         @NotBlank(message = "El teléfono no puede ser vacío")
         String telefono) {
 }
