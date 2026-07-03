@@ -56,7 +56,7 @@ public class AdministradorService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // ---- Cuenta del administrador ----
+    
 
     public Administrador crear(Administrador admin) {
         if (administradorRepository.existsByUsername(admin.getUsername())) {
@@ -84,11 +84,7 @@ public class AdministradorService {
                         "Administrador no encontrado para id: " + id));
     }
 
-    // ---- Aprobación de proveedores ----
 
-    /**
-     * Bandeja de postulaciones pendientes (proxy a proveedores?estado=POSTULADO).
-     */
     public List<ProveedorResponse> proveedoresPendientes() {
         try {
             ProveedorResponse[] pendientes = proveedoresWebClient.get()
@@ -103,10 +99,7 @@ public class AdministradorService {
         }
     }
 
-    /**
-     * Resuelve la postulación: PATCH al servicio proveedores, registra la
-     * acción en la auditoría y avisa al proveedor por notificaciones.
-     */
+  
     public AccionAdmin resolverProveedor(int proveedorId, int adminId, boolean aprobado,
             String observaciones) {
         Administrador admin = obtenerPorId(adminId);
@@ -142,12 +135,7 @@ public class AdministradorService {
         return accionAdminRepository.save(accion);
     }
 
-    // ---- Reporte semanal por categoría ----
-
-    /**
-     * Genera y PERSISTE el reporte: agrega las ventas PAGADAS del rango
-     * (obtenidas de ventas) usando el snapshot de categoría de cada línea.
-     */
+   
     public ReporteSemanal generarReporte(int adminId, LocalDate desde, LocalDate hasta) {
         Administrador admin = obtenerPorId(adminId);
         if (hasta.isBefore(desde)) {
@@ -250,7 +238,7 @@ public class AdministradorService {
         }
     }
 
-    // Cuerpos de las llamadas salientes (DTOs locales del consumidor)
+    
     private record CambioEstadoProveedor(String estado, String observaciones) {}
     private record NotificacionRequest(String destinatarioTipo, int destinatarioId,
             String tipo, String asunto, String mensaje, Integer referenciaId) {}
