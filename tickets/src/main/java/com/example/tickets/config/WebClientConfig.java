@@ -17,22 +17,28 @@ import reactor.netty.http.client.HttpClient;
 
 /**
  * WebClients del servicio: bean nombrado por destino, baseUrl por
- * properties, timeouts y token INTERNO (JWT) adjunto en cada llamada
- * saliente para el RBAC entre servicios.
+ * properties, timeouts configurables (en la nube los cold starts exigen
+ * valores holgados) y token INTERNO (JWT) adjunto en cada llamada saliente.
  */
 @Configuration
 public class WebClientConfig {
 
     private final JwtUtil jwtUtil;
+    private final int connectTimeoutMs;
+    private final int responseTimeoutSegundos;
 
-    public WebClientConfig(JwtUtil jwtUtil) {
+    public WebClientConfig(JwtUtil jwtUtil,
+            @Value("${paris.webclient.connecttimeoutms:3000}") int connectTimeoutMs,
+            @Value("${paris.webclient.responsetimeout:5}") int responseTimeoutSegundos) {
         this.jwtUtil = jwtUtil;
+        this.connectTimeoutMs = connectTimeoutMs;
+        this.responseTimeoutSegundos = responseTimeoutSegundos;
     }
 
     private WebClient build(WebClient.Builder builder, String baseUrl) {
         HttpClient httpClient = HttpClient.create()
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000)
-                .responseTimeout(Duration.ofSeconds(5));
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeoutMs)
+                .responseTimeout(Duration.ofSeconds(responseTimeoutSegundos));
         return builder.baseUrl(baseUrl)
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .filter((request, next) -> next.exchange(ClientRequest.from(request)

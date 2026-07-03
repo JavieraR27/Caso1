@@ -74,14 +74,32 @@ public class ProveedorController {
         return ResponseEntity.ok(new LoginResponse(token, ProveedorMapper.toResponse(proveedor)));
     }
 
+    @Operation(summary = "Registra la postulación de un vendedor",
+            description = "El vendedor queda en estado POSTULADO hasta que el administrador "
+                    + "resuelva. Endpoint público: no requiere token.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Postulación registrada en estado POSTULADO"),
+            @ApiResponse(responseCode = "400", description = "Cuerpo inválido (Bean Validation)"),
+            @ApiResponse(responseCode = "409", description = "Ya existe un proveedor con ese rut o email")})
     @PostMapping
     public ResponseEntity<ProveedorResponse> postular(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Datos de la postulación del vendedor",
+                    content = @Content(examples = @ExampleObject(
+                            value = "{\"rut\": \"76543210-K\", \"razonSocial\": \"Ferretería Cóndor\", "
+                                    + "\"email\": \"condor@ferreteria.cl\", \"password\": \"Condor2026\", "
+                                    + "\"telefono\": \"+56911111111\"}")))
             @Valid @RequestBody CreateProveedorRequest request) {
         Proveedor proveedor = proveedorService.postular(ProveedorMapper.toModel(request));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ProveedorMapper.toResponse(proveedor));
     }
 
+    @Operation(summary = "Lista los proveedores",
+            description = "Filtro opcional por estado (?estado=POSTULADO es la bandeja del "
+                    + "administrador). Requiere rol PROVEEDOR, ADMINISTRADOR o INTERNO.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Listado (puede ser vacío)")})
     @GetMapping
     public ResponseEntity<List<ProveedorResponse>> listar(
             @RequestParam(name = "estado", required = false) EstadoProveedor estado) {
@@ -91,6 +109,12 @@ public class ProveedorController {
         return ResponseEntity.ok(proveedores);
     }
 
+    @Operation(summary = "Busca un proveedor por id",
+            description = "Lo consume productos para validar que solo un proveedor APROBADO "
+                    + "publique. Requiere rol PROVEEDOR, ADMINISTRADOR o INTERNO.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Proveedor encontrado"),
+            @ApiResponse(responseCode = "404", description = "No existe proveedor con ese id")})
     @GetMapping("{id}")
     public ResponseEntity<ProveedorResponse> buscarPorId(@PathVariable int id) {
         return ResponseEntity.ok(ProveedorMapper.toResponse(proveedorService.obtenerPorId(id)));
@@ -99,14 +123,32 @@ public class ProveedorController {
     /**
      * Resuelve la postulación (lo invoca el servicio administrador vía WebClient).
      */
+    @Operation(summary = "Aprueba o rechaza la postulación",
+            description = "Solo se resuelve un proveedor POSTULADO; el rechazo exige "
+                    + "observaciones. Lo invoca el servicio administrador vía WebClient. "
+                    + "Requiere rol ADMINISTRADOR o INTERNO.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Postulación resuelta (APROBADO o RECHAZADO)"),
+            @ApiResponse(responseCode = "400", description = "Cuerpo inválido (Bean Validation)"),
+            @ApiResponse(responseCode = "404", description = "No existe proveedor con ese id"),
+            @ApiResponse(responseCode = "409", description = "Ya estaba resuelta, estado destino inválido o rechazo sin observaciones")})
     @PatchMapping("{id}/estado")
     public ResponseEntity<ProveedorResponse> cambiarEstado(@PathVariable int id,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Resolución de la postulación",
+                    content = @Content(examples = @ExampleObject(
+                            value = "{\"estado\": \"APROBADO\", \"observaciones\": \"Documentación en regla\"}")))
             @Valid @RequestBody CambioEstadoRequest request) {
         Proveedor proveedor = proveedorService.cambiarEstado(
                 id, request.estado(), request.observaciones());
         return ResponseEntity.ok(ProveedorMapper.toResponse(proveedor));
     }
 
+    @Operation(summary = "Lista los documentos de la postulación",
+            description = "Requiere rol PROVEEDOR, ADMINISTRADOR o INTERNO.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Documentos adjuntos (puede ser vacío)"),
+            @ApiResponse(responseCode = "404", description = "No existe proveedor con ese id")})
     @GetMapping("{id}/documentos")
     public ResponseEntity<List<DocumentoResponse>> listarDocumentos(@PathVariable int id) {
         List<DocumentoResponse> documentos = proveedorService.listarDocumentos(id).stream()
@@ -115,8 +157,20 @@ public class ProveedorController {
         return ResponseEntity.ok(documentos);
     }
 
+    @Operation(summary = "Adjunta un documento a la postulación",
+            description = "Solo mientras la postulación está POSTULADA. Requiere rol PROVEEDOR.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Documento adjuntado"),
+            @ApiResponse(responseCode = "400", description = "Cuerpo inválido (Bean Validation)"),
+            @ApiResponse(responseCode = "404", description = "No existe proveedor con ese id"),
+            @ApiResponse(responseCode = "409", description = "La postulación ya fue resuelta")})
     @PostMapping("{id}/documentos")
     public ResponseEntity<DocumentoResponse> agregarDocumento(@PathVariable int id,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Documento de respaldo de la postulación",
+                    content = @Content(examples = @ExampleObject(
+                            value = "{\"tipo\": \"PATENTE_COMERCIAL\", \"nombreArchivo\": \"patente-2026.pdf\", "
+                                    + "\"url\": \"https://drive.google.com/patente-condor\"}")))
             @Valid @RequestBody CreateDocumentoRequest request) {
         DocumentoProveedor documento = new DocumentoProveedor();
         documento.setTipo(request.tipo());
