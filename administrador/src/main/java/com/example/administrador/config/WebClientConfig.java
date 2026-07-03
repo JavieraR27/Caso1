@@ -15,11 +15,7 @@ import com.example.administrador.security.JwtUtil;
 import io.netty.channel.ChannelOption;
 import reactor.netty.http.client.HttpClient;
 
-/**
- * WebClients del servicio: bean nombrado por destino, baseUrl por
- * properties, timeouts configurables (en la nube los cold starts exigen
- * valores holgados) y token INTERNO (JWT) adjunto en cada llamada saliente.
- */
+
 @Configuration
 public class WebClientConfig {
 
