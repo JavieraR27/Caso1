@@ -1,0 +1,2573 @@
+{
+  "info": {
+    "name": "Marketplace Paris — Caso 1 (EP3)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Los 61 endpoints de los 11 microservicios + la demo de María en orden.\n\nUSO RÁPIDO: (1) correr la carpeta '0 · Pre-calentado' hasta que los 11 den 200; (2) correr '1 · Logins'; (3) correr '2 · DEMO María' request por request (los ids y tokens se guardan solos en variables de colección).\n\nLOCAL en vez de nube: importar también el environment 'Paris — Local' y seleccionarlo (sobrescribe las base_*).\n\nEl token INTERNO (endpoints servicio-a-servicio) se firma automáticamente en el pre-request de la colección con {{jwt_secret}} — debe coincidir con paris.jwt.secret del despliegue."
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Firma un token INTERNO (HS256) con el secreto compartido para poder",
+          "// probar los endpoints servicio-a-servicio desde Postman.",
+          "const secret = pm.collectionVariables.get('jwt_secret');",
+          "if (secret) {",
+          "  const b64u = wa => CryptoJS.enc.Base64.stringify(wa).replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=+$/,'');",
+          "  const enc = o => b64u(CryptoJS.enc.Utf8.parse(JSON.stringify(o)));",
+          "  const now = Math.floor(Date.now()/1000);",
+          "  const h = enc({alg:'HS256', typ:'JWT'});",
+          "  const p = enc({sub:'postman', rol:'INTERNO', iat:now, exp:now + 8*3600});",
+          "  pm.collectionVariables.set('token_interno', h+'.'+p+'.'+b64u(CryptoJS.HmacSHA256(h+'.'+p, secret)));",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "jwt_secret",
+      "value": "paris-marketplace-dsy1103-secreto-desarrollo-2026!",
+      "type": "string"
+    },
+    {
+      "key": "cliente_n",
+      "value": "31"
+    },
+    {
+      "key": "base_legacy",
+      "value": "https://paris-legacy.onrender.com"
+    },
+    {
+      "key": "base_clientes",
+      "value": "https://paris-clientes.onrender.com"
+    },
+    {
+      "key": "base_proveedores",
+      "value": "https://paris-proveedores.onrender.com"
+    },
+    {
+      "key": "base_productos",
+      "value": "https://paris-productos.onrender.com"
+    },
+    {
+      "key": "base_ventas",
+      "value": "https://paris-ventas.onrender.com"
+    },
+    {
+      "key": "base_pagos",
+      "value": "https://paris-pagos.onrender.com"
+    },
+    {
+      "key": "base_despacho",
+      "value": "https://paris-despacho.onrender.com"
+    },
+    {
+      "key": "base_tickets",
+      "value": "https://paris-tickets.onrender.com"
+    },
+    {
+      "key": "base_feedback",
+      "value": "https://paris-feedback.onrender.com"
+    },
+    {
+      "key": "base_notificaciones",
+      "value": "https://paris-notificaciones.onrender.com"
+    },
+    {
+      "key": "base_administrador",
+      "value": "https://paris-administrador.onrender.com"
+    },
+    {
+      "key": "token_admin",
+      "value": ""
+    },
+    {
+      "key": "token_condor",
+      "value": ""
+    },
+    {
+      "key": "token_toolmax",
+      "value": ""
+    },
+    {
+      "key": "token_maria",
+      "value": ""
+    },
+    {
+      "key": "token_interno",
+      "value": ""
+    },
+    {
+      "key": "maria_id",
+      "value": ""
+    },
+    {
+      "key": "venta_id",
+      "value": ""
+    },
+    {
+      "key": "pago_id",
+      "value": ""
+    },
+    {
+      "key": "envio_id",
+      "value": ""
+    },
+    {
+      "key": "ticket_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "0 · Pre-calentado (correr carpeta completa)",
+      "item": [
+        {
+          "name": "ping paris-legacy",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_legacy}}/v3/api-docs",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('despierto', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ping paris-clientes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_clientes}}/v3/api-docs",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('despierto', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ping paris-proveedores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_proveedores}}/v3/api-docs",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('despierto', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ping paris-productos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_productos}}/v3/api-docs",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('despierto', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ping paris-ventas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_ventas}}/v3/api-docs",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('despierto', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ping paris-pagos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_pagos}}/v3/api-docs",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('despierto', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ping paris-despacho",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_despacho}}/v3/api-docs",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('despierto', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ping paris-tickets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_tickets}}/v3/api-docs",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('despierto', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ping paris-feedback",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_feedback}}/v3/api-docs",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('despierto', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ping paris-notificaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_notificaciones}}/v3/api-docs",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('despierto', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ping paris-administrador",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_administrador}}/v3/api-docs",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('despierto', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "El plan free de Render duerme los servicios a los 15 min. Correr esta carpeta (Run folder) hasta que los 11 den 200 (~1 min si estaban dormidos)."
+    },
+    {
+      "name": "1 · Logins (tokens por rol)",
+      "item": [
+        {
+          "name": "Login ADMIN → {{token_admin}}",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_administrador}}/api/v1/administradores/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.collectionVariables.set('token_admin', d.token);",
+                  "console.log('token_admin =', pm.collectionVariables.get('token_admin'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login PROVEEDOR Cóndor → {{token_condor}}",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_proveedores}}/api/v1/proveedores/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"condor@ferreteria.cl\",\n  \"password\": \"condor123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.collectionVariables.set('token_condor', d.token);",
+                  "console.log('token_condor =', pm.collectionVariables.get('token_condor'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login PROVEEDOR Toolmax → {{token_toolmax}}",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_proveedores}}/api/v1/proveedores/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ventas@toolmax.cl\",\n  \"password\": \"toolmax123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.collectionVariables.set('token_toolmax', d.token);",
+                  "console.log('token_toolmax =', pm.collectionVariables.get('token_toolmax'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login CLIENTE María (cliente{{cliente_n}}) → {{token_maria}}",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_clientes}}/api/v1/clientes/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cliente{{cliente_n}}@paris.cl\",\n  \"password\": \"pass{{cliente_n}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.collectionVariables.set('token_maria', d.token);",
+                  "pm.collectionVariables.set('maria_id', d.cliente.id);",
+                  "pm.test('migrada o local', () => pm.expect(d.cliente.tipo).to.be.oneOf(['MIGRADO','NUEVO']));",
+                  "console.log('María id', d.cliente.id, d.cliente.tipo);"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Cada login guarda su token en una variable de colección. El token INTERNO (servicio-a-servicio) se firma solo en el pre-request de la colección usando {{jwt_secret}}."
+    },
+    {
+      "name": "2 · DEMO María (correr en orden)",
+      "item": [
+        {
+          "name": "Acto 1 · Login María (migración vía legacy)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_clientes}}/api/v1/clientes/login",
+            "description": "Primer login del cliente histórico: valida contra la API legacy y lo migra sin re-registro. Mirar: tipo MIGRADO + legacyId.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cliente{{cliente_n}}@paris.cl\",\n  \"password\": \"pass{{cliente_n}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.collectionVariables.set('token_maria', d.token);",
+                  "pm.collectionVariables.set('maria_id', d.cliente.id);",
+                  "pm.test('tiene token', () => pm.expect(d.token).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Acto 2 · Catálogo Herramientas (público)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_productos}}/api/v1/productos?categoria=Herramientas",
+            "description": "Dos taladros de vendedores distintos; comparar precioVigente (oferta 20% en el de Cóndor).",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Acto 2 · Reputación del producto 1 (público)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_feedback}}/api/v1/resenas/producto/1/promedio",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Acto 3 · Crear venta → {{venta_id}}",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_ventas}}/api/v1/ventas",
+            "description": "Valida cliente (→clientes) y producto/stock (→productos); precio VIGENTE como snapshot y comisión 10% en servidor.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_maria}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": \"{{maria_id}}\",\n  \"detalles\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.collectionVariables.set('venta_id', d.id);",
+                  "console.log('venta_id =', pm.collectionVariables.get('venta_id'));",
+                  "pm.test('comisión 10%', () => pm.expect(d.comisionTotal).to.eql(Math.round(d.montoTotal/10)));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Acto 3 · Pagar (ORQUESTACIÓN de 4 servicios)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_ventas}}/api/v1/ventas/{{venta_id}}/pagar",
+            "description": "Un solo PATCH orquesta: productos (stock), pagos (pago+comprobante), despacho (seguimiento) y notificaciones.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_maria}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medioPago\": \"TARJETA\",\n  \"direccionEntrega\": \"Av. Providencia 123, Santiago\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('PAGADA', () => pm.expect(pm.response.json().estado).to.eql('PAGADA'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Acto 3 · Evidencia: stock descontado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_productos}}/api/v1/productos/1",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Acto 3 · Evidencia: pago registrado → {{pago_id}}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_pagos}}/api/v1/pagos?ventaId={{venta_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_maria}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.collectionVariables.set('pago_id', d[0].id);",
+                  "console.log('pago_id =', pm.collectionVariables.get('pago_id'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Acto 3 · Evidencia: comprobante con folio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_pagos}}/api/v1/pagos/{{pago_id}}/comprobante",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_maria}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Acto 4 · Seguimiento desde el perfil de María → {{envio_id}}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_despacho}}/api/v1/envios?clienteId={{maria_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_maria}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "const e = d.find(x => x.ventaId == pm.collectionVariables.get('venta_id')) || d[d.length-1];",
+                  "pm.collectionVariables.set('envio_id', e.id);",
+                  "console.log('envío', e.id, e.estadoActual, e.numeroSeguimiento);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Acto 4 · Vendedor marca ENVIADO",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_despacho}}/api/v1/envios/{{envio_id}}/estado",
+            "description": "Acción exclusiva del rol PROVEEDOR; dispara la notificación de DESPACHO vía WebClient.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_condor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"ENVIADO\",\n  \"comentario\": \"Retirado por courier\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Acto 4 · Vendedor marca ENTREGADO",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_despacho}}/api/v1/envios/{{envio_id}}/estado",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_condor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"ENTREGADO\",\n  \"comentario\": \"Recibido conforme\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Acto 4 · Historial trazable del envío",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_despacho}}/api/v1/envios/{{envio_id}}/historial",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_maria}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Acto 4 · Bandeja de avisos de María",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_notificaciones}}/api/v1/notificaciones?destinatarioTipo=CLIENTE&destinatarioId={{maria_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_maria}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Acto 5 · Abrir reclamo (defectuoso) → {{ticket_id}}",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_tickets}}/api/v1/tickets",
+            "description": "tickets valida contra ventas que la compra es real y toma de ella cliente y proveedor.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_maria}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ventaId\": \"{{venta_id}}\",\n  \"categoria\": \"PRODUCTO_DEFECTUOSO\",\n  \"asunto\": \"Taladro no enciende\",\n  \"descripcion\": \"El gatillo llegó trabado, no gira\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.collectionVariables.set('ticket_id', d.id);",
+                  "console.log('ticket_id =', pm.collectionVariables.get('ticket_id'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Acto 6 · Mensaje del ADMIN (media → EN_MEDIACION)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_tickets}}/api/v1/tickets/{{ticket_id}}/mensajes",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"autorRol\": \"ADMINISTRADOR\",\n  \"mensaje\": \"Estamos revisando el caso con el vendedor\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Acto 6 · Mensaje del PROVEEDOR",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_tickets}}/api/v1/tickets/{{ticket_id}}/mensajes",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_condor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"autorRol\": \"PROVEEDOR\",\n  \"mensaje\": \"Aceptamos la devolución, lote con falla\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Acto 6 · ADMIN resuelve y autoriza reembolso",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_tickets}}/api/v1/tickets/{{ticket_id}}/resolver",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"RESUELTO\",\n  \"resolucion\": \"Falla de fábrica confirmada; se reembolsa el total\",\n  \"reembolsoAutorizado\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('reembolso autorizado', () => pm.expect(pm.response.json().reembolsoAutorizado).to.be.true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Acto 6 · Evidencia: reembolso PROCESADO",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_pagos}}/api/v1/pagos/{{pago_id}}/reembolsos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Acto 6 · Evidencia: pago REEMBOLSADO + siguiente cliente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_pagos}}/api/v1/pagos/{{pago_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('REEMBOLSADO', () => pm.expect(pm.response.json().estado).to.eql('REEMBOLSADO'));",
+                  "const n = parseInt(pm.collectionVariables.get('cliente_n')) + 1;",
+                  "pm.collectionVariables.set('cliente_n', String(n));",
+                  "console.log('Próxima demo usará cliente' + n);"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "La historia completa en orden (correr los Logins antes). Cada request guarda los ids que necesita el siguiente. Al terminar incrementa cliente_n para que la próxima demo migre a un cliente nuevo."
+    },
+    {
+      "name": "3 · Endpoints por servicio (los 61)",
+      "item": [
+        {
+          "name": "legacy (8081)",
+          "item": [
+            {
+              "name": "Validar credenciales legacy",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_legacy}}/api/v1/legacy/validaciones",
+                "description": "Rol INTERNO (el token se firma solo con {{jwt_secret}}).",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_interno}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"cliente1@paris.cl\",\n  \"password\": \"pass1\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Buscar cliente legacy por email",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_legacy}}/api/v1/legacy/clientes/cliente1@paris.cl",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_interno}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "clientes (8082)",
+          "item": [
+            {
+              "name": "Registrar cliente nuevo",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_clientes}}/api/v1/clientes",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"pedro.soto@gmail.com\",\n  \"password\": \"Secreta123\",\n  \"nombre\": \"Pedro Soto\",\n  \"telefono\": \"+56912345678\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Login (migra históricos)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_clientes}}/api/v1/clientes/login",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"cliente{{cliente_n}}@paris.cl\",\n  \"password\": \"pass{{cliente_n}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Buscar cliente por id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_clientes}}/api/v1/clientes/{{maria_id}}",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_maria}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Actualizar perfil",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_clientes}}/api/v1/clientes/{{maria_id}}",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_maria}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"María Pérez\",\n  \"telefono\": \"+56998765432\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Listar direcciones",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_clientes}}/api/v1/clientes/{{maria_id}}/direcciones",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_maria}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Agregar dirección",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_clientes}}/api/v1/clientes/{{maria_id}}/direcciones",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_maria}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"alias\": \"Casa\",\n  \"calle\": \"Av. Providencia\",\n  \"numero\": \"123\",\n  \"comuna\": \"Providencia\",\n  \"region\": \"Metropolitana\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "proveedores (8083)",
+          "item": [
+            {
+              "name": "Login proveedor",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_proveedores}}/api/v1/proveedores/login",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"condor@ferreteria.cl\",\n  \"password\": \"condor123\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Postular proveedor",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_proveedores}}/api/v1/proveedores",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"rut\": \"79111222-3\",\n  \"razonSocial\": \"Pinturas del Sur\",\n  \"email\": \"contacto@pintasur.cl\",\n  \"password\": \"PintaSur2026\",\n  \"telefono\": \"+56933333333\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Listar proveedores (?estado=)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_proveedores}}/api/v1/proveedores?estado=POSTULADO",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Buscar proveedor por id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_proveedores}}/api/v1/proveedores/1",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Aprobar/rechazar postulación",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_proveedores}}/api/v1/proveedores/3/estado",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estado\": \"APROBADO\",\n  \"observaciones\": \"Documentación en regla\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Listar documentos",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_proveedores}}/api/v1/proveedores/1/documentos",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_condor}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Adjuntar documento",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_proveedores}}/api/v1/proveedores/3/documentos",
+                "description": "Solo mientras la postulación está POSTULADA (409 si ya fue resuelta).",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_condor}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"PATENTE_COMERCIAL\",\n  \"nombreArchivo\": \"patente-2026.pdf\",\n  \"url\": \"https://drive.google.com/patente\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "productos (8084)",
+          "item": [
+            {
+              "name": "Catálogo (público, ?categoria=&proveedorId=)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_productos}}/api/v1/productos?categoria=Herramientas",
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Detalle con precio vigente (público)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_productos}}/api/v1/productos/1",
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Publicar producto (PROVEEDOR aprobado)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_productos}}/api/v1/productos",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_condor}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"proveedorId\": 1,\n  \"categoriaId\": 1,\n  \"nombre\": \"Esmeril angular 900W\",\n  \"descripcion\": \"Disco 115mm\",\n  \"precio\": 35000,\n  \"stock\": 8\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Editar producto",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_productos}}/api/v1/productos/1",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_condor}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Taladro percutor 750W\",\n  \"descripcion\": \"Con maletín\",\n  \"precio\": 50000,\n  \"stock\": 10,\n  \"estado\": \"ACTIVO\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Descontar stock (INTERNO, lo usa ventas)",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_productos}}/api/v1/productos/1/stock",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_interno}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cantidad\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Listar ofertas (público)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_productos}}/api/v1/productos/1/ofertas",
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Crear oferta (una activa por producto)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_productos}}/api/v1/productos/2/ofertas",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_toolmax}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipoOferta\": \"MONTO_FIJO\",\n  \"valor\": 5000,\n  \"fechaInicio\": \"2026-07-03\",\n  \"fechaFin\": \"2026-07-31\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Listar categorías (público)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_productos}}/api/v1/categorias",
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Crear categoría (ADMIN)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_productos}}/api/v1/categorias",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Pinturas\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "ventas (8085)",
+          "item": [
+            {
+              "name": "Crear venta (CLIENTE)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_ventas}}/api/v1/ventas",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_maria}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"clienteId\": \"{{maria_id}}\",\n  \"detalles\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Pagar venta (orquestación)",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_ventas}}/api/v1/ventas/{{venta_id}}/pagar",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_maria}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"medioPago\": \"TARJETA\",\n  \"direccionEntrega\": \"Av. Providencia 123, Santiago\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Buscar venta por id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_ventas}}/api/v1/ventas/{{venta_id}}",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_maria}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Listar ventas (?clienteId | ?proveedorId | ?desde&hasta)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_ventas}}/api/v1/ventas?clienteId={{maria_id}}",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_maria}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Detalles de la venta",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_ventas}}/api/v1/ventas/{{venta_id}}/detalles",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_maria}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "pagos (8086)",
+          "item": [
+            {
+              "name": "Registrar pago (INTERNO, lo usa ventas)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_pagos}}/api/v1/pagos",
+                "description": "409 si la venta ya tiene pago (en el flujo normal lo hace la orquestación).",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_interno}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"ventaId\": \"{{venta_id}}\",\n  \"medioPago\": \"TARJETA\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Buscar pago por id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_pagos}}/api/v1/pagos/{{pago_id}}",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_maria}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Listar pagos (?ventaId=)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_pagos}}/api/v1/pagos?ventaId={{venta_id}}",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_maria}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Comprobante del pago",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_pagos}}/api/v1/pagos/{{pago_id}}/comprobante",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_maria}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Registrar reembolso (ADMIN/INTERNO)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_pagos}}/api/v1/pagos/{{pago_id}}/reembolsos",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"ticketId\": \"{{ticket_id}}\",\n  \"monto\": 40000,\n  \"motivo\": \"Reclamo: producto defectuoso\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Listar reembolsos del pago",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_pagos}}/api/v1/pagos/{{pago_id}}/reembolsos",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "despacho (8087)",
+          "item": [
+            {
+              "name": "Crear seguimiento (INTERNO, lo usa ventas)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_despacho}}/api/v1/envios",
+                "description": "409 si la venta ya tiene seguimiento (en el flujo normal lo hace la orquestación).",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_interno}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"ventaId\": \"{{venta_id}}\",\n  \"direccionEntrega\": \"Av. Providencia 123, Santiago\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Buscar seguimiento por id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_despacho}}/api/v1/envios/{{envio_id}}",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_maria}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Listar (?ventaId | ?clienteId | ?proveedorId)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_despacho}}/api/v1/envios?clienteId={{maria_id}}",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_maria}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Cambiar estado (PROVEEDOR: marcar enviado)",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_despacho}}/api/v1/envios/{{envio_id}}/estado",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_condor}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estado\": \"ENVIADO\",\n  \"comentario\": \"Retirado por courier\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Historial del envío",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_despacho}}/api/v1/envios/{{envio_id}}/historial",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_maria}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "tickets (8088)",
+          "item": [
+            {
+              "name": "Abrir reclamo (CLIENTE)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_tickets}}/api/v1/tickets",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_maria}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"ventaId\": \"{{venta_id}}\",\n  \"categoria\": \"PRODUCTO_DEFECTUOSO\",\n  \"asunto\": \"Taladro no enciende\",\n  \"descripcion\": \"Gatillo trabado\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Listar tickets (?estado= | ?clienteId=)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_tickets}}/api/v1/tickets?estado=ABIERTO",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Buscar ticket por id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_tickets}}/api/v1/tickets/{{ticket_id}}",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Hilo de mensajes",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_tickets}}/api/v1/tickets/{{ticket_id}}/mensajes",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Agregar mensaje (mediación)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_tickets}}/api/v1/tickets/{{ticket_id}}/mensajes",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"autorRol\": \"ADMINISTRADOR\",\n  \"mensaje\": \"Revisando el caso\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Resolver (ADMIN, puede autorizar reembolso)",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_tickets}}/api/v1/tickets/{{ticket_id}}/resolver",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estado\": \"RESUELTO\",\n  \"resolucion\": \"Falla confirmada; reembolso total\",\n  \"reembolsoAutorizado\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "feedback (8089)",
+          "item": [
+            {
+              "name": "Crear reseña (compra verificada)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_feedback}}/api/v1/resenas",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_maria}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"productoId\": 1,\n  \"clienteId\": \"{{maria_id}}\",\n  \"ventaId\": \"{{venta_id}}\",\n  \"calificacion\": 4,\n  \"comentario\": \"Buen taladro, mal control de calidad\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Reseñas de un producto (público)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_feedback}}/api/v1/resenas/producto/1",
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Promedio del producto (público)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_feedback}}/api/v1/resenas/producto/1/promedio",
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Eliminar reseña (moderación ADMIN)",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": "{{base_feedback}}/api/v1/resenas/1",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "notificaciones (8090)",
+          "item": [
+            {
+              "name": "Registrar aviso (INTERNO/ADMIN)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_notificaciones}}/api/v1/notificaciones",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_interno}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"destinatarioTipo\": \"CLIENTE\",\n  \"destinatarioId\": \"{{maria_id}}\",\n  \"tipo\": \"DESPACHO\",\n  \"asunto\": \"Tu pedido va en camino\",\n  \"mensaje\": \"Pedido despachado\",\n  \"referenciaId\": \"{{venta_id}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Bandeja (?destinatarioTipo&destinatarioId&tipo)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_notificaciones}}/api/v1/notificaciones?destinatarioTipo=CLIENTE&destinatarioId={{maria_id}}",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_maria}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Buscar aviso por id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_notificaciones}}/api/v1/notificaciones/1",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_maria}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "administrador (8091)",
+          "item": [
+            {
+              "name": "Crear cuenta admin (bootstrap)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_administrador}}/api/v1/administradores",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"admin2\",\n  \"password\": \"admin456\",\n  \"nombre\": \"Admin Suplente\",\n  \"email\": \"admin2@paris.cl\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Login admin",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_administrador}}/api/v1/administradores/login",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Bandeja de postulaciones pendientes",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_administrador}}/api/v1/admin/proveedores/pendientes",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Aprobar/rechazar proveedor (orquesta)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_administrador}}/api/v1/admin/proveedores/3/aprobacion",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"adminId\": 1,\n  \"aprobado\": true,\n  \"observaciones\": \"Documentación en regla\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Generar reporte semanal por categoría",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_administrador}}/api/v1/admin/reportes/semanal",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"adminId\": 1,\n  \"desde\": \"2026-06-29\",\n  \"hasta\": \"2026-07-06\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Listar reportes",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_administrador}}/api/v1/admin/reportes",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Descargar reporte por id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_administrador}}/api/v1/admin/reportes/1",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Auditoría de acciones",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_administrador}}/api/v1/admin/acciones",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
