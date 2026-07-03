@@ -11,10 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-/**
- * RBAC del servicio: reglas por endpoint según la matriz de roles del
- * PLAN.md (sección 3). Sesión stateless con JWT (JwtAuthFilter).
- */
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -25,7 +22,6 @@ public class SecurityConfig {
         this.jwtAuthFilter = jwtAuthFilter;
     }
 
-    /** BCrypt para cifrar credenciales antes de almacenarlas. */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
