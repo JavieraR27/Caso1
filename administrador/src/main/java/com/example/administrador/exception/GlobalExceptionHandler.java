@@ -12,10 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-/**
- * Manejador global de errores con Problem Details (RFC 7807), patrón del profesor
- * extendido con 409 (conflicto de negocio) y 503 (servicio dependiente caído).
- */
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
