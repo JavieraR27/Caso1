@@ -17,8 +17,8 @@ Proyecto semestral DSY1103 Full Stack I (EP2). Arquitectura de microservicios Sp
 | [ventas](ventas/) | 8085 | ventasdb | ✅ construido |
 | [pagos](pagos/) | 8086 | pagosdb | ✅ construido |
 | [despacho](despacho/) | 8087 | despachodb | ✅ construido |
-| tickets | 8088 | ticketsdb | pendiente (F4) |
-| feedback | 8089 | feedbackdb | pendiente (F4) |
+| [tickets](tickets/) | 8088 | ticketsdb | ✅ construido |
+| [feedback](feedback/) | 8089 | feedbackdb | ✅ construido |
 | [notificaciones](notificaciones/) | 8090 | notificacionesdb | ✅ construido |
 | administrador | 8091 | administradordb | pendiente (F5) |
 | gateway | 8080 | — | backlog (fuera de EP2) |
