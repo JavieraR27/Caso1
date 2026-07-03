@@ -11,14 +11,11 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
-/**
- * Emisión y validación de JWT (HS256, secreto compartido entre servicios).
- * Roles: CLIENTE, PROVEEDOR, ADMINISTRADOR e INTERNO (servicio a servicio).
- */
+
 @Component
 public class JwtUtil {
 
-    private static final long EXPIRACION_MS = 8 * 60 * 60 * 1000; // 8 horas
+    private static final long EXPIRACION_MS = 8 * 60 * 60 * 1000; 
 
     private final SecretKey key;
 
@@ -36,7 +33,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    /** Token de servicio para las llamadas WebClient entre microservicios. */
+   
     public String generarInterno(String servicio) {
         return generar(servicio, "INTERNO");
     }
