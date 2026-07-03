@@ -16,11 +16,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
-/**
- * Reporte semanal de ventas por categoría. Se PERSISTE al generarse
- * ("descarga el reporte semanal"): agrega los snapshots de categoría de los
- * detalles de venta obtenidos de ventas vía WebClient.
- */
+
 @Entity
 @Table(name = "reportes_semanales")
 public class ReporteSemanal {
@@ -49,7 +45,7 @@ public class ReporteSemanal {
     @Column(name = "fecha_generacion", nullable = false)
     private LocalDateTime fechaGeneracion;
 
-    /** Unidireccional con FK en reporte_categorias; se persisten juntas. */
+   
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "reporte_id", nullable = false)
     private List<ReporteCategoria> categorias = new ArrayList<>();
