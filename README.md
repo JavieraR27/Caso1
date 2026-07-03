@@ -20,7 +20,7 @@ Proyecto semestral DSY1103 Full Stack I (EP2). Arquitectura de microservicios Sp
 | [tickets](tickets/) | 8088 | ticketsdb | ✅ construido |
 | [feedback](feedback/) | 8089 | feedbackdb | ✅ construido |
 | [notificaciones](notificaciones/) | 8090 | notificacionesdb | ✅ construido |
-| administrador | 8091 | administradordb | pendiente (F5) |
+| [administrador](administrador/) | 8091 | administradordb | ✅ construido |
 | gateway | 8080 | — | backlog (fuera de EP2) |
 
 ## Stack
