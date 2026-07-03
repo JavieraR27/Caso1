@@ -363,13 +363,13 @@ Datos semilla coherentes de todo el flujo; guion de live demo (§7.5); verificac
 
 ## 8. Backlog proyecto completo (fuera de EP2 — no puntúa en esta entrega)
 
-| Ítem | Alcance futuro |
+| Ítem | Estado |
 |---|---|
-| API Gateway (8080) | Spring Cloud Gateway, rutas estáticas por servicio |
-| Eureka | Service discovery + resolución por nombre en WebClient |
-| Kafka | Proyecciones sincronizadas / eventos (p. ej. `VentaPagada` → despacho/notificaciones asíncronos) |
-| Seguridad | BCrypt (clientes, administradores, legacy), login con JJWT, RBAC por rol, filtros |
-| Documentación | springdoc-openapi (OpenAPI 3) con bean de info por servicio — **no** springfox |
-| Pruebas | JUnit 5 + Mockito por capa (EA3) |
-| Despliegue | Docker Compose local; exposición Ngrok o cloud (Railway/Render) con URL funcional |
-| Mejoras de dominio | Carrito persistente, paginación en listados, correo real en notificaciones, anulación de ventas con reposición de stock |
+| API Gateway (8080) | ✅ hecho — Spring Cloud Gateway con ruta `lb://` por servicio |
+| Eureka (8761) | ✅ hecho — servidor + registro de los 11 servicios (WebClient sigue con URLs estáticas) |
+| Seguridad | ✅ hecho — BCrypt (clientes/proveedores/administrador), JWT HS256 por rol, RBAC por endpoint y rol INTERNO para llamadas entre servicios; legacy queda en texto plano por diseño |
+| Documentación | ✅ hecho — springdoc-openapi 2.6.0 con OpenApiConfig por servicio (Swagger UI); anotaciones @Operation finas pendientes |
+| Pruebas | ✅ hecho (base) — 23 tests JUnit 5/Mockito de reglas de negocio en legacy, proveedores, productos, pagos y feedback; ampliar cobertura en EA3 |
+| Despliegue | ✅ hecho (local) — Dockerfile multi-stage por módulo + docker-compose.yml; exposición Ngrok/Railway/Render pendiente |
+| Kafka | Pendiente — proyecciones sincronizadas / eventos (p. ej. `VentaPagada` → despacho/notificaciones asíncronos) |
+| Mejoras de dominio | Pendiente — carrito persistente, paginación, correo real en notificaciones, anulación de ventas con reposición de stock |

@@ -1,0 +1,131 @@
+# Marketplace Paris — ecosistema completo (11 servicios + eureka + gateway).
+# Requiere un archivo .env con las credenciales de Neon (ver .env.example).
+# Uso: docker compose up --build
+#
+# Dentro de la red de compose los servicios se hablan por hostname
+# (http://ventas:8085); las URLs de application.properties se sobreescriben
+# vía variables de entorno (relaxed binding de Spring).
+
+x-neon-env: &neon-env
+  SPRING_DATASOURCE_USERNAME: ${NEON_USER}
+  SPRING_DATASOURCE_PASSWORD: ${NEON_PASSWORD}
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka
+  PARIS_JWT_SECRET: ${JWT_SECRET}
+
+services:
+  eureka:
+    build: ./eureka
+    ports: ["8761:8761"]
+
+  gateway:
+    build: ./gateway
+    ports: ["8080:8080"]
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka
+    depends_on: [eureka]
+
+  legacy:
+    build: ./legacy
+    ports: ["8081:8081"]
+    environment:
+      <<: *neon-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${NEON_HOST}/legacydb?sslmode=require&channel_binding=require
+    depends_on: [eureka]
+
+  clientes:
+    build: ./clientes
+    ports: ["8082:8082"]
+    environment:
+      <<: *neon-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${NEON_HOST}/clientesdb?sslmode=require&channel_binding=require
+      LEGACY_SERVICE_URL: http://legacy:8081
+    depends_on: [eureka, legacy]
+
+  proveedores:
+    build: ./proveedores
+    ports: ["8083:8083"]
+    environment:
+      <<: *neon-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${NEON_HOST}/proveedoresdb?sslmode=require&channel_binding=require
+    depends_on: [eureka]
+
+  productos:
+    build: ./productos
+    ports: ["8084:8084"]
+    environment:
+      <<: *neon-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${NEON_HOST}/productosdb?sslmode=require&channel_binding=require
+      PROVEEDORES_SERVICE_URL: http://proveedores:8083
+    depends_on: [eureka, proveedores]
+
+  ventas:
+    build: ./ventas
+    ports: ["8085:8085"]
+    environment:
+      <<: *neon-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${NEON_HOST}/ventasdb?sslmode=require&channel_binding=require
+      CLIENTES_SERVICE_URL: http://clientes:8082
+      PRODUCTOS_SERVICE_URL: http://productos:8084
+      PAGOS_SERVICE_URL: http://pagos:8086
+      DESPACHO_SERVICE_URL: http://despacho:8087
+      NOTIFICACIONES_SERVICE_URL: http://notificaciones:8090
+    depends_on: [eureka, clientes, productos]
+
+  pagos:
+    build: ./pagos
+    ports: ["8086:8086"]
+    environment:
+      <<: *neon-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${NEON_HOST}/pagosdb?sslmode=require&channel_binding=require
+      VENTAS_SERVICE_URL: http://ventas:8085
+    depends_on: [eureka]
+
+  despacho:
+    build: ./despacho
+    ports: ["8087:8087"]
+    environment:
+      <<: *neon-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${NEON_HOST}/despachodb?sslmode=require&channel_binding=require
+      VENTAS_SERVICE_URL: http://ventas:8085
+      NOTIFICACIONES_SERVICE_URL: http://notificaciones:8090
+    depends_on: [eureka, notificaciones]
+
+  tickets:
+    build: ./tickets
+    ports: ["8088:8088"]
+    environment:
+      <<: *neon-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${NEON_HOST}/ticketsdb?sslmode=require&channel_binding=require
+      VENTAS_SERVICE_URL: http://ventas:8085
+      PAGOS_SERVICE_URL: http://pagos:8086
+      NOTIFICACIONES_SERVICE_URL: http://notificaciones:8090
+    depends_on: [eureka, pagos, notificaciones]
+
+  feedback:
+    build: ./feedback
+    ports: ["8089:8089"]
+    environment:
+      <<: *neon-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${NEON_HOST}/feedbackdb?sslmode=require&channel_binding=require
+      VENTAS_SERVICE_URL: http://ventas:8085
+      PRODUCTOS_SERVICE_URL: http://productos:8084
+    depends_on: [eureka, productos]
+
+  notificaciones:
+    build: ./notificaciones
+    ports: ["8090:8090"]
+    environment:
+      <<: *neon-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${NEON_HOST}/notificacionesdb?sslmode=require&channel_binding=require
+    depends_on: [eureka]
+
+  administrador:
+    build: ./administrador
+    ports: ["8091:8091"]
+    environment:
+      <<: *neon-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${NEON_HOST}/administradordb?sslmode=require&channel_binding=require
+      PROVEEDORES_SERVICE_URL: http://proveedores:8083
+      VENTAS_SERVICE_URL: http://ventas:8085
+      NOTIFICACIONES_SERVICE_URL: http://notificaciones:8090
+    depends_on: [eureka, proveedores, notificaciones]

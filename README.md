@@ -21,12 +21,45 @@ Proyecto semestral DSY1103 Full Stack I (EP2). Arquitectura de microservicios Sp
 | [feedback](feedback/) | 8089 | feedbackdb | ✅ construido |
 | [notificaciones](notificaciones/) | 8090 | notificacionesdb | ✅ construido |
 | [administrador](administrador/) | 8091 | administradordb | ✅ construido |
-| gateway | 8080 | — | backlog (fuera de EP2) |
+| [gateway](gateway/) | 8080 | — | ✅ construido (infra, no puntúa EP2) |
+| [eureka](eureka/) | 8761 | — | ✅ construido (infra, no puntúa EP2) |
 
 ## Stack
 
 Java 21 · Spring Boot 3.3.6 · Spring Data JPA/Hibernate (`ddl-auto=update`) · PostgreSQL en Neon
-(un proyecto, una BD lógica por servicio) · WebClient para comunicación entre servicios · Maven.
+(un proyecto, una BD lógica por servicio) · WebClient para comunicación entre servicios ·
+Spring Cloud 2023.0.5 (Eureka + Gateway) · Spring Security + JJWT (BCrypt/JWT/RBAC) ·
+springdoc OpenAPI 3 · JUnit 5/Mockito · Docker Compose · Maven.
+
+## Seguridad (roles)
+
+JWT HS256 con secreto compartido (`paris.jwt.secret`). Cada login emite un token con su rol:
+
+| Rol | Login | Acciones exclusivas |
+|---|---|---|
+| CLIENTE | `POST /api/v1/clientes/login` | comprar, pagar, reclamar, reseñar |
+| PROVEEDOR | `POST /api/v1/proveedores/login` (exige APROBADO) | publicar productos/ofertas, marcar enviado |
+| ADMINISTRADOR | `POST /api/v1/administradores/login` | aprobar proveedores, resolver tickets, reportes, moderar |
+| INTERNO | (lo emiten los propios servicios) | llamadas WebClient entre microservicios |
+
+Catálogo (`GET /productos`, `/categorias`) y reseñas son de lectura pública; registro y logins
+no exigen token. El resto de endpoints requiere `Authorization: Bearer <token>` según la matriz
+de PLAN.md §3.
+
+## Documentación y tests
+
+- Swagger UI por servicio: `http://localhost:<puerto>/swagger-ui/index.html` (JSON en `/v3/api-docs`).
+- Tests unitarios de reglas de negocio (sin red ni BD): `mvn test -Dtest='*ServiceTest'`.
+
+## Docker Compose
+
+```bash
+cp .env.example .env   # completar credenciales de Neon
+docker compose up --build
+```
+
+Levanta los 13 contenedores (11 servicios + eureka + gateway); dentro de la red se resuelven
+por hostname y el gateway queda en `http://localhost:8080`.
 
 ## Cómo ejecutar un servicio
 
