@@ -3,10 +3,7 @@ package com.example.administrador.dto;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
-/**
- * Decisión del administrador sobre una postulación. Si se rechaza, las
- * observaciones son obligatorias (lo exige el servicio proveedores).
- */
+
 public record AprobacionProveedorRequest(
         @NotNull(message = "El id del administrador no puede ser nulo")
         @Positive(message = "El id del administrador debe ser positivo")
