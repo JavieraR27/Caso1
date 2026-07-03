@@ -3,9 +3,6 @@ package com.example.administrador.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-/**
- * Alta de un administrador del marketplace.
- */
 public record CreateAdministradorRequest(
         @NotBlank(message = "El username no puede ser vacío")
         String username,
