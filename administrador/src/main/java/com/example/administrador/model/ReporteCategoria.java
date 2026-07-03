@@ -7,9 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-/**
- * Desglose del reporte semanal: totales por categoría de producto.
- */
+
 @Entity
 @Table(name = "reporte_categorias")
 public class ReporteCategoria {
