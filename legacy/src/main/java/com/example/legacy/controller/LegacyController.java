@@ -14,8 +14,16 @@ import com.example.legacy.mapper.ClienteLegacyMapper;
 import com.example.legacy.model.ClienteLegacy;
 import com.example.legacy.service.ClienteLegacyService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+@Tag(name = "Legacy",
+        description = "Simulación del sistema legacy con los 5.000 clientes históricos de Almacenes Paris")
 @RestController
 @RequestMapping("/api/v1/legacy")
 public class LegacyController {
@@ -26,19 +34,32 @@ public class LegacyController {
         this.clienteLegacyService = clienteLegacyService;
     }
 
-    /**
-     * Valida credenciales de un cliente histórico (lo consume el servicio clientes
-     * durante el login/migración). 200 con los datos, 404 si no existe, 409 si la
-     * password no coincide.
-     */
+    @Operation(summary = "Valida credenciales de un cliente histórico",
+            description = "Lo consume el servicio clientes durante el login: si las credenciales "
+                    + "son válidas, el cliente histórico se migra al marketplace sin re-registrarse. "
+                    + "Requiere token de rol INTERNO.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Credenciales válidas; datos del cliente (sin password)"),
+            @ApiResponse(responseCode = "400", description = "Cuerpo inválido (Bean Validation)"),
+            @ApiResponse(responseCode = "404", description = "El email no existe en el sistema legacy"),
+            @ApiResponse(responseCode = "409", description = "La password no coincide")})
     @PostMapping("/validaciones")
     public ResponseEntity<ClienteLegacyResponse> validarCredenciales(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Credenciales del cliente histórico",
+                    content = @Content(examples = @ExampleObject(
+                            value = "{\"email\": \"cliente1@paris.cl\", \"password\": \"pass1\"}")))
             @Valid @RequestBody ValidacionRequest request) {
         ClienteLegacy cliente = clienteLegacyService.validarCredenciales(
                 request.email(), request.password());
         return ResponseEntity.ok(ClienteLegacyMapper.toResponse(cliente));
     }
 
+    @Operation(summary = "Busca un cliente histórico por email",
+            description = "Datos del cliente legacy para la migración. Requiere token de rol INTERNO.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Cliente encontrado"),
+            @ApiResponse(responseCode = "404", description = "El email no existe en el sistema legacy")})
     @GetMapping("/clientes/{email}")
     public ResponseEntity<ClienteLegacyResponse> buscarPorEmail(@PathVariable String email) {
         ClienteLegacy cliente = clienteLegacyService.obtenerPorEmail(email);

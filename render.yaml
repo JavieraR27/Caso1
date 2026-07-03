@@ -1,0 +1,212 @@
+# Blueprint de Render — Marketplace Paris (EP3)
+# Despliega los 11 microservicios de negocio como web services Docker (plan free).
+# Eureka y Gateway quedan como infra local: en la nube cada servicio tiene su URL
+# y el discovery se desactiva vía EUREKA_CLIENT_ENABLED=false.
+#
+# Uso: push del repo a GitHub → Render → New → Blueprint → seleccionar el repo.
+# Al crear el blueprint, Render pide los 3 valores sync:false del grupo paris-comun
+# (usuario y password de Neon + secreto JWT). autoDeploy está apagado para cuidar
+# los minutos de build del plan free: desplegar manualmente desde el dashboard.
+#
+# OJO: si algún nombre paris-* está tomado, Render agrega un sufijo a la URL;
+# en ese caso corregir las *_SERVICE_URL correspondientes en el dashboard.
+
+envVarGroups:
+  - name: paris-comun
+    envVars:
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: PARIS_JWT_SECRET
+        sync: false
+      - key: EUREKA_CLIENT_ENABLED
+        value: "false"
+      # Cold start del free tier: timeouts holgados entre servicios
+      - key: PARIS_WEBCLIENT_RESPONSETIMEOUT
+        value: "75"
+      - key: PARIS_WEBCLIENT_CONNECTTIMEOUTMS
+        value: "10000"
+      # 512 MB por instancia: acotar el heap de la JVM
+      - key: JAVA_TOOL_OPTIONS
+        value: "-XX:MaxRAMPercentage=75"
+
+services:
+  - type: web
+    name: paris-legacy
+    runtime: docker
+    plan: free
+    autoDeploy: false
+    dockerfilePath: ./legacy/Dockerfile
+    dockerContext: ./legacy
+    healthCheckPath: /v3/api-docs
+    envVars:
+      - fromGroup: paris-comun
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://ep-red-river-atqxiz3l-pooler.c-9.us-east-1.aws.neon.tech/legacydb?sslmode=require&channel_binding=require
+
+  - type: web
+    name: paris-clientes
+    runtime: docker
+    plan: free
+    autoDeploy: false
+    dockerfilePath: ./clientes/Dockerfile
+    dockerContext: ./clientes
+    healthCheckPath: /v3/api-docs
+    envVars:
+      - fromGroup: paris-comun
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://ep-red-river-atqxiz3l-pooler.c-9.us-east-1.aws.neon.tech/clientesdb?sslmode=require&channel_binding=require
+      - key: LEGACY_SERVICE_URL
+        value: https://paris-legacy.onrender.com
+
+  - type: web
+    name: paris-proveedores
+    runtime: docker
+    plan: free
+    autoDeploy: false
+    dockerfilePath: ./proveedores/Dockerfile
+    dockerContext: ./proveedores
+    healthCheckPath: /v3/api-docs
+    envVars:
+      - fromGroup: paris-comun
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://ep-red-river-atqxiz3l-pooler.c-9.us-east-1.aws.neon.tech/proveedoresdb?sslmode=require&channel_binding=require
+
+  - type: web
+    name: paris-productos
+    runtime: docker
+    plan: free
+    autoDeploy: false
+    dockerfilePath: ./productos/Dockerfile
+    dockerContext: ./productos
+    healthCheckPath: /v3/api-docs
+    envVars:
+      - fromGroup: paris-comun
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://ep-red-river-atqxiz3l-pooler.c-9.us-east-1.aws.neon.tech/productosdb?sslmode=require&channel_binding=require
+      - key: PROVEEDORES_SERVICE_URL
+        value: https://paris-proveedores.onrender.com
+
+  - type: web
+    name: paris-ventas
+    runtime: docker
+    plan: free
+    autoDeploy: false
+    dockerfilePath: ./ventas/Dockerfile
+    dockerContext: ./ventas
+    healthCheckPath: /v3/api-docs
+    envVars:
+      - fromGroup: paris-comun
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://ep-red-river-atqxiz3l-pooler.c-9.us-east-1.aws.neon.tech/ventasdb?sslmode=require&channel_binding=require
+      - key: CLIENTES_SERVICE_URL
+        value: https://paris-clientes.onrender.com
+      - key: PRODUCTOS_SERVICE_URL
+        value: https://paris-productos.onrender.com
+      - key: PAGOS_SERVICE_URL
+        value: https://paris-pagos.onrender.com
+      - key: DESPACHO_SERVICE_URL
+        value: https://paris-despacho.onrender.com
+      - key: NOTIFICACIONES_SERVICE_URL
+        value: https://paris-notificaciones.onrender.com
+
+  - type: web
+    name: paris-pagos
+    runtime: docker
+    plan: free
+    autoDeploy: false
+    dockerfilePath: ./pagos/Dockerfile
+    dockerContext: ./pagos
+    healthCheckPath: /v3/api-docs
+    envVars:
+      - fromGroup: paris-comun
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://ep-red-river-atqxiz3l-pooler.c-9.us-east-1.aws.neon.tech/pagosdb?sslmode=require&channel_binding=require
+      - key: VENTAS_SERVICE_URL
+        value: https://paris-ventas.onrender.com
+
+  - type: web
+    name: paris-despacho
+    runtime: docker
+    plan: free
+    autoDeploy: false
+    dockerfilePath: ./despacho/Dockerfile
+    dockerContext: ./despacho
+    healthCheckPath: /v3/api-docs
+    envVars:
+      - fromGroup: paris-comun
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://ep-red-river-atqxiz3l-pooler.c-9.us-east-1.aws.neon.tech/despachodb?sslmode=require&channel_binding=require
+      - key: VENTAS_SERVICE_URL
+        value: https://paris-ventas.onrender.com
+      - key: NOTIFICACIONES_SERVICE_URL
+        value: https://paris-notificaciones.onrender.com
+
+  - type: web
+    name: paris-tickets
+    runtime: docker
+    plan: free
+    autoDeploy: false
+    dockerfilePath: ./tickets/Dockerfile
+    dockerContext: ./tickets
+    healthCheckPath: /v3/api-docs
+    envVars:
+      - fromGroup: paris-comun
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://ep-red-river-atqxiz3l-pooler.c-9.us-east-1.aws.neon.tech/ticketsdb?sslmode=require&channel_binding=require
+      - key: VENTAS_SERVICE_URL
+        value: https://paris-ventas.onrender.com
+      - key: PAGOS_SERVICE_URL
+        value: https://paris-pagos.onrender.com
+      - key: NOTIFICACIONES_SERVICE_URL
+        value: https://paris-notificaciones.onrender.com
+
+  - type: web
+    name: paris-feedback
+    runtime: docker
+    plan: free
+    autoDeploy: false
+    dockerfilePath: ./feedback/Dockerfile
+    dockerContext: ./feedback
+    healthCheckPath: /v3/api-docs
+    envVars:
+      - fromGroup: paris-comun
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://ep-red-river-atqxiz3l-pooler.c-9.us-east-1.aws.neon.tech/feedbackdb?sslmode=require&channel_binding=require
+      - key: VENTAS_SERVICE_URL
+        value: https://paris-ventas.onrender.com
+      - key: PRODUCTOS_SERVICE_URL
+        value: https://paris-productos.onrender.com
+
+  - type: web
+    name: paris-notificaciones
+    runtime: docker
+    plan: free
+    autoDeploy: false
+    dockerfilePath: ./notificaciones/Dockerfile
+    dockerContext: ./notificaciones
+    healthCheckPath: /v3/api-docs
+    envVars:
+      - fromGroup: paris-comun
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://ep-red-river-atqxiz3l-pooler.c-9.us-east-1.aws.neon.tech/notificacionesdb?sslmode=require&channel_binding=require
+
+  - type: web
+    name: paris-administrador
+    runtime: docker
+    plan: free
+    autoDeploy: false
+    dockerfilePath: ./administrador/Dockerfile
+    dockerContext: ./administrador
+    healthCheckPath: /v3/api-docs
+    envVars:
+      - fromGroup: paris-comun
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://ep-red-river-atqxiz3l-pooler.c-9.us-east-1.aws.neon.tech/administradordb?sslmode=require&channel_binding=require
+      - key: PROVEEDORES_SERVICE_URL
+        value: https://paris-proveedores.onrender.com
+      - key: VENTAS_SERVICE_URL
+        value: https://paris-ventas.onrender.com
+      - key: NOTIFICACIONES_SERVICE_URL
+        value: https://paris-notificaciones.onrender.com

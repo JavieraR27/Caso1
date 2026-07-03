@@ -22,8 +22,17 @@ import com.example.pagos.model.Pago;
 import com.example.pagos.model.Reembolso;
 import com.example.pagos.service.PagoService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+@Tag(name = "Pagos",
+        description = "Pagos del marketplace Paris: registro del pago en la orquestación de ventas, "
+                + "emisión de comprobantes y reembolsos autorizados vía tickets")
 @RestController
 @RequestMapping("/api/v1/pagos")
 public class PagoController {

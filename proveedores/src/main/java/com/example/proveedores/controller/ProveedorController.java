@@ -27,8 +27,17 @@ import com.example.proveedores.model.Proveedor;
 import com.example.proveedores.security.JwtUtil;
 import com.example.proveedores.service.ProveedorService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+@Tag(name = "Proveedores",
+        description = "Postulación, aprobación, login y documentos de los vendedores del "
+                + "marketplace Paris (ferreterías y otros comercios)")
 @RestController
 @RequestMapping("/api/v1/proveedores")
 public class ProveedorController {
@@ -44,8 +53,21 @@ public class ProveedorController {
     /**
      * Login del vendedor (emite JWT con rol PROVEEDOR; exige estado APROBADO).
      */
+    @Operation(summary = "Autentica un proveedor y entrega su JWT",
+            description = "Emite un token con rol PROVEEDOR; solo un proveedor en estado APROBADO "
+                    + "puede iniciar sesión. Endpoint público: no requiere token.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Login correcto; token JWT y datos del proveedor"),
+            @ApiResponse(responseCode = "400", description = "Cuerpo inválido (Bean Validation)"),
+            @ApiResponse(responseCode = "404", description = "El email no corresponde a ningún proveedor"),
+            @ApiResponse(responseCode = "409", description = "Password incorrecta o proveedor aún no APROBADO")})
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Credenciales del vendedor",
+                    content = @Content(examples = @ExampleObject(
+                            value = "{\"email\": \"ventas@ferreteriaelmartillo.cl\", "
+                                    + "\"password\": \"Fierro2026\"}")))
             @Valid @RequestBody LoginProveedorRequest request) {
         Proveedor proveedor = proveedorService.login(request.email(), request.password());
         String token = jwtUtil.generar(String.valueOf(proveedor.getId()), "PROVEEDOR");
