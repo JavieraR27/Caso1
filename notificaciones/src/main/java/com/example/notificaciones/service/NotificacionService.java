@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.example.notificaciones.exception.ResourceNotFoundException;
+import com.example.notificaciones.model.DestinatarioTipo;
 import com.example.notificaciones.model.EstadoNotificacion;
 import com.example.notificaciones.model.Notificacion;
 import com.example.notificaciones.model.TipoNotificacion;
@@ -32,7 +33,20 @@ public class NotificacionService {
         return notificacionRepository.save(notificacion);
     }
 
-    public List<Notificacion> listar(Integer destinatarioId, TipoNotificacion tipo) {
+    /**
+     * Bandeja con filtros combinables. destinatarioTipo evita que un cliente
+     * y un proveedor con el mismo id numérico vean avisos ajenos.
+     */
+    public List<Notificacion> listar(DestinatarioTipo destinatarioTipo,
+            Integer destinatarioId, TipoNotificacion tipo) {
+        if (destinatarioTipo != null && destinatarioId != null && tipo != null) {
+            return notificacionRepository.findByDestinatarioTipoAndDestinatarioIdAndTipo(
+                    destinatarioTipo, destinatarioId, tipo);
+        }
+        if (destinatarioTipo != null && destinatarioId != null) {
+            return notificacionRepository.findByDestinatarioTipoAndDestinatarioId(
+                    destinatarioTipo, destinatarioId);
+        }
         if (destinatarioId != null && tipo != null) {
             return notificacionRepository.findByDestinatarioIdAndTipo(destinatarioId, tipo);
         }

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.notificaciones.dto.CreateNotificacionRequest;
 import com.example.notificaciones.dto.NotificacionResponse;
 import com.example.notificaciones.mapper.NotificacionMapper;
+import com.example.notificaciones.model.DestinatarioTipo;
 import com.example.notificaciones.model.Notificacion;
 import com.example.notificaciones.model.TipoNotificacion;
 import com.example.notificaciones.service.NotificacionService;
@@ -48,10 +49,11 @@ public class NotificacionController {
      */
     @GetMapping
     public ResponseEntity<List<NotificacionResponse>> listar(
+            @RequestParam(name = "destinatarioTipo", required = false) DestinatarioTipo destinatarioTipo,
             @RequestParam(name = "destinatarioId", required = false) Integer destinatarioId,
             @RequestParam(name = "tipo", required = false) TipoNotificacion tipo) {
         List<NotificacionResponse> notificaciones = notificacionService
-                .listar(destinatarioId, tipo).stream()
+                .listar(destinatarioTipo, destinatarioId, tipo).stream()
                 .map(NotificacionMapper::toResponse)
                 .toList();
         return ResponseEntity.ok(notificaciones);

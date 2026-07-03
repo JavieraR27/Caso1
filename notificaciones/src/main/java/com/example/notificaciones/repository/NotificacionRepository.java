@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.example.notificaciones.model.DestinatarioTipo;
 import com.example.notificaciones.model.Notificacion;
 import com.example.notificaciones.model.TipoNotificacion;
 
@@ -16,4 +17,10 @@ public interface NotificacionRepository extends JpaRepository<Notificacion, Inte
     List<Notificacion> findByDestinatarioIdAndTipo(int destinatarioId, TipoNotificacion tipo);
 
     List<Notificacion> findByTipo(TipoNotificacion tipo);
+
+    List<Notificacion> findByDestinatarioTipoAndDestinatarioId(
+            DestinatarioTipo destinatarioTipo, int destinatarioId);
+
+    List<Notificacion> findByDestinatarioTipoAndDestinatarioIdAndTipo(
+            DestinatarioTipo destinatarioTipo, int destinatarioId, TipoNotificacion tipo);
 }
