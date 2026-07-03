@@ -29,10 +29,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-/**
- * Acciones exclusivas del rol Administrador: bandeja y resolución de
- * postulaciones, reporte semanal por categoría y auditoría.
- */
 @Tag(name = "Administración",
         description = "Acciones exclusivas del rol Administrador: aprobación de proveedores, "
                 + "reporte semanal de ventas por categoría y auditoría de acciones. "
@@ -47,9 +43,7 @@ public class AdminController {
         this.administradorService = administradorService;
     }
 
-    /**
-     * Bandeja de postulaciones pendientes (vía proveedores?estado=POSTULADO).
-     */
+   
     @Operation(summary = "Bandeja de postulaciones pendientes",
             description = "Consulta vía WebClient al servicio proveedores los que están en "
                     + "estado POSTULADO.")
@@ -61,10 +55,7 @@ public class AdminController {
         return ResponseEntity.ok(administradorService.proveedoresPendientes());
     }
 
-    /**
-     * Aprueba o rechaza (con observaciones) una postulación: PATCH a
-     * proveedores + aviso por notificaciones + registro en la auditoría.
-     */
+  
     @Operation(summary = "Aprueba o rechaza una postulación",
             description = "Orquesta la decisión: PATCH al servicio proveedores (el rechazo "
                     + "exige observaciones), aviso al vendedor vía notificaciones y registro "
@@ -89,10 +80,7 @@ public class AdminController {
                 .body(AdministradorMapper.toResponse(accion));
     }
 
-    /**
-     * Genera y persiste el reporte semanal de ventas por categoría
-     * (agrega desde ventas vía WebClient).
-     */
+   
     @Operation(summary = "Genera el reporte semanal de ventas por categoría",
             description = "Obtiene vía WebClient las ventas PAGADAS del rango desde el "
                     + "servicio ventas, agrega por el snapshot de categoría de cada línea "
@@ -127,9 +115,7 @@ public class AdminController {
         return ResponseEntity.ok(reportes);
     }
 
-    /**
-     * "Descarga" del reporte (JSON persistido).
-     */
+   
     @Operation(summary = "Descarga un reporte por id",
             description = "Devuelve el reporte persistido con su desglose por categoría.")
     @ApiResponses({
