@@ -16,11 +16,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-/**
- * Lee el Bearer token, lo valida y deja la autenticación (con ROLE_<rol>)
- * en el contexto de seguridad. Un token inválido se ignora: la regla de la
- * ruta decidirá si la petición pasa (401/403 si exige rol).
- */
+
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
