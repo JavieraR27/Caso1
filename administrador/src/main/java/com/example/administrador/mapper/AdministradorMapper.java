@@ -8,10 +8,7 @@ import com.example.administrador.model.AccionAdmin;
 import com.example.administrador.model.Administrador;
 import com.example.administrador.model.ReporteSemanal;
 
-/**
- * Convierte las entidades del servicio administrador a sus DTOs de salida
- * (nunca se expone la password).
- */
+
 public class AdministradorMapper {
 
     public static Administrador toModel(CreateAdministradorRequest request) {
