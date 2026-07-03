@@ -13,10 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
-/**
- * Auditoría de acciones administrativas. referenciaId es referencia blanda
- * al recurso afectado (proveedor, ticket o reporte, según el tipo).
- */
+
 @Entity
 @Table(name = "acciones_admin")
 public class AccionAdmin {
