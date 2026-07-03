@@ -11,9 +11,9 @@ Proyecto semestral DSY1103 Full Stack I (EP2). Arquitectura de microservicios Sp
 | Servicio | Puerto | BD (Neon) | Estado |
 |---|---|---|---|
 | [legacy](legacy/) | 8081 | legacydb | ✅ construido |
-| clientes | 8082 | clientesdb | pendiente (F2) |
+| [clientes](clientes/) | 8082 | clientesdb | ✅ construido |
 | [proveedores](proveedores/) | 8083 | proveedoresdb | ✅ construido |
-| productos | 8084 | productosdb | pendiente (F2) |
+| [productos](productos/) | 8084 | productosdb | ✅ construido |
 | ventas | 8085 | ventasdb | pendiente (F3) |
 | pagos | 8086 | pagosdb | pendiente (F3) |
 | despacho | 8087 | despachodb | pendiente (F3) |
