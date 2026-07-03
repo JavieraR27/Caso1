@@ -24,10 +24,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-/**
- * Cuenta del administrador: alta y login con emisión de JWT (rol
- * ADMINISTRADOR) y password cifrada con BCrypt.
- */
+
 @Tag(name = "Administradores",
         description = "Cuentas del rol Administrador del marketplace Paris: alta y login "
                 + "con emisión de JWT")
