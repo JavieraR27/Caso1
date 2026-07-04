@@ -48,7 +48,11 @@ de PLAN.md §3.
 
 ## Documentación y tests
 
+- **Swagger unificado (gateway):** `http://localhost:8080/swagger-ui.html` — desplegable con los
+  11 servicios; el "Try it out" sale por el propio gateway.
 - Swagger UI por servicio: `http://localhost:<puerto>/swagger-ui/index.html` (JSON en `/v3/api-docs`).
+- Endpoints protegidos desde Swagger: botón **Authorize** → pegar el `token` que devuelve el
+  login correspondiente (sin el prefijo `Bearer `). Los endpoints públicos funcionan sin token.
 - Tests unitarios de reglas de negocio (sin red ni BD): `mvn test -Dtest='*ServiceTest'`.
 
 ## Docker Compose

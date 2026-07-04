@@ -1,9 +1,10 @@
 # Guía de despliegue en Render (EP3)
 
-Despliega los **11 microservicios de negocio** como web services Docker en el plan free de
-Render, usando el blueprint [render.yaml](../render.yaml) de la raíz del repo. Eureka y el
-gateway quedan como infra local (en la nube cada servicio tiene su propia URL y el discovery
-se desactiva con `EUREKA_CLIENT_ENABLED=false`).
+Despliega los **11 microservicios de negocio + el gateway** como web services Docker en el
+plan free de Render, usando el blueprint [render.yaml](../render.yaml) de la raíz del repo.
+Eureka queda como infra local: en la nube cada servicio tiene su propia URL, el discovery se
+desactiva con `EUREKA_CLIENT_ENABLED=false` y el gateway enruta con las `*_SERVICE_URL`.
+**Swagger unificado en la nube:** https://paris-gateway.onrender.com/swagger-ui.html
 
 ## 1. Subir el repo a GitHub (manual)
 
@@ -21,7 +22,7 @@ la password y el secreto JWT se piden aparte.
 
 1. [render.com](https://render.com) → **New → Blueprint** → conectar la cuenta de GitHub y
    elegir el repo.
-2. Render lee `render.yaml` y lista los 11 servicios `paris-*`.
+2. Render lee `render.yaml` y lista los 12 servicios `paris-*` (11 de negocio + gateway).
 3. Al confirmar, pide los 3 valores secretos del grupo `paris-comun`:
    - `SPRING_DATASOURCE_USERNAME` → `neondb_owner`
    - `SPRING_DATASOURCE_PASSWORD` → la password de Neon
@@ -41,12 +42,14 @@ la password y el secreto JWT se piden aparte.
   Por eso el blueprint sube los timeouts entre servicios
   (`PARIS_WEBCLIENT_RESPONSETIMEOUT=75` s) — la orquestación tolera que un servicio
   destino esté despertando.
-- **Pre-calentar SIEMPRE antes de la demo** (despierta los 11 y los deja listos):
+- **Pre-calentar SIEMPRE antes de la demo** (despierta los 12 y los deja listos):
 
 ```bash
 for s in legacy clientes proveedores productos ventas pagos despacho tickets feedback notificaciones administrador; do
   curl -s -o /dev/null -w "paris-$s: %{http_code}\n" --max-time 90 https://paris-$s.onrender.com/v3/api-docs &
-done; wait
+done
+curl -s -o /dev/null -w "paris-gateway: %{http_code}\n" --max-time 90 https://paris-gateway.onrender.com/v3/api-docs/swagger-config &
+wait
 ```
 
   (200 = despierto; repetir hasta que todos den 200.)
@@ -70,8 +73,13 @@ curl -s -X POST https://paris-clientes.onrender.com/api/v1/clientes/login \
   -H 'Content-Type: application/json' -d '{"email":"cliente10@paris.cl","password":"pass10"}' | jq .cliente
 ```
 
+- **Swagger unificado (gateway):** `https://paris-gateway.onrender.com/swagger-ui.html` —
+  desplegable con los 11 servicios; los "Try it out" salen por el gateway.
 - Swagger de cada servicio: `https://paris-<servicio>.onrender.com/swagger-ui/index.html`
   (con las anotaciones @Operation/@ApiResponse/@RequestBody/@ExampleObject de la rúbrica).
+- Endpoints protegidos desde Swagger: botón **Authorize** → pegar el `token` del login
+  correspondiente, sin el prefijo `Bearer ` (la tabla de qué token usar por acto está en la
+  [guía de María](guia-demo-maria.md) §2.1).
 
 ## 5. Demo en la nube (historia de María)
 

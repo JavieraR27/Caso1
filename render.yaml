@@ -1,7 +1,8 @@
 # Blueprint de Render — Marketplace Paris (EP3)
-# Despliega los 11 microservicios de negocio como web services Docker (plan free).
-# Eureka y Gateway quedan como infra local: en la nube cada servicio tiene su URL
-# y el discovery se desactiva vía EUREKA_CLIENT_ENABLED=false.
+# Despliega los 11 microservicios de negocio + el gateway como web services Docker
+# (plan free). Eureka queda como infra local: en la nube cada servicio tiene su URL,
+# el discovery se desactiva vía EUREKA_CLIENT_ENABLED=false y el gateway enruta por
+# las *_SERVICE_URL. Swagger unificado: https://paris-gateway.onrender.com/swagger-ui.html
 #
 # Uso: push del repo a GitHub → Render → New → Blueprint → seleccionar el repo.
 # Al crear el blueprint, Render pide los 3 valores sync:false del grupo paris-comun
@@ -210,3 +211,39 @@ services:
         value: https://paris-ventas.onrender.com
       - key: NOTIFICACIONES_SERVICE_URL
         value: https://paris-notificaciones.onrender.com
+
+  # Punto de entrada único + Swagger unificado de los 11 servicios
+  # (https://paris-gateway.onrender.com/swagger-ui.html). Sin BD ni JWT:
+  # solo enruta; toma EUREKA_CLIENT_ENABLED=false y el heap del grupo común.
+  - type: web
+    name: paris-gateway
+    runtime: docker
+    plan: free
+    autoDeploy: false
+    dockerfilePath: ./gateway/Dockerfile
+    dockerContext: ./gateway
+    healthCheckPath: /v3/api-docs/swagger-config
+    envVars:
+      - fromGroup: paris-comun
+      - key: LEGACY_SERVICE_URL
+        value: https://paris-legacy.onrender.com
+      - key: CLIENTES_SERVICE_URL
+        value: https://paris-clientes.onrender.com
+      - key: PROVEEDORES_SERVICE_URL
+        value: https://paris-proveedores.onrender.com
+      - key: PRODUCTOS_SERVICE_URL
+        value: https://paris-productos.onrender.com
+      - key: VENTAS_SERVICE_URL
+        value: https://paris-ventas.onrender.com
+      - key: PAGOS_SERVICE_URL
+        value: https://paris-pagos.onrender.com
+      - key: DESPACHO_SERVICE_URL
+        value: https://paris-despacho.onrender.com
+      - key: TICKETS_SERVICE_URL
+        value: https://paris-tickets.onrender.com
+      - key: FEEDBACK_SERVICE_URL
+        value: https://paris-feedback.onrender.com
+      - key: NOTIFICACIONES_SERVICE_URL
+        value: https://paris-notificaciones.onrender.com
+      - key: ADMINISTRADOR_SERVICE_URL
+        value: https://paris-administrador.onrender.com

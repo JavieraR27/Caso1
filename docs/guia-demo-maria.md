@@ -29,12 +29,50 @@ Ya configurado en este equipo (si es una máquina nueva, ver README):
 
 Verificación rápida:
 - Eureka con los 11 registrados: http://localhost:8761
+- **Swagger unificado de la historia** (gateway): http://localhost:8080/swagger-ui.html
 - Swagger de cualquier servicio: http://localhost:8084/swagger-ui/index.html
 - El catálogo es público: `curl -s localhost:8084/api/v1/productos | jq .`
 
 Para detener al final: `./scripts/stop-all.sh`
 
 > Alternativa contenedores: `cp .env.example .env` (completar Neon) y `docker compose up --build`.
+
+### 2.1 La historia desde Swagger (sin curl)
+
+El gateway agrega los api-docs de los 11 servicios en un solo Swagger UI:
+**http://localhost:8080/swagger-ui.html**, con un desplegable "Select a definition"
+(arriba a la derecha) ordenado según la historia. El "Try it out" sale por el gateway,
+así que no hay que cambiar de puerto.
+
+Los endpoints protegidos exigen JWT: ejecuta primero el **login** (es público) desde el
+propio Swagger, copia el campo `token` de la respuesta y pégalo en el botón
+**Authorize** (candado verde, arriba a la derecha) — **sin** el prefijo `Bearer `.
+El token dura lo suficiente para toda la demo; al cambiar de actor, `Authorize` →
+`Logout` y pega el token del otro rol.
+
+Qué token usar en cada paso:
+
+| Paso | Definición (desplegable) | Endpoint | Token |
+|---|---|---|---|
+| Preparación: crear admin + login | administrador | `POST /administradores` y `/administradores/login` | — (públicos) |
+| Preparación: postular vendedores | proveedores | `POST /proveedores` y `/proveedores/login` | — (públicos) |
+| Preparación: aprobar vendedores | administrador | `POST /admin/proveedores/{id}/aprobacion` | ADMIN |
+| Preparación: categoría / productos / oferta | productos | `POST /categorias`, `/productos`, `/productos/{id}/ofertas` | ADMIN / PROVEEDOR |
+| Acto 1: login de María (migra del legacy) | clientes (login María) | `POST /clientes/login` | — (público) |
+| Acto 2: catálogo y reseñas | productos, feedback | `GET /productos`, `/resenas/producto/{id}/promedio` | — (públicos) |
+| Acto 3: crear venta y pagar | ventas (orquestador) | `POST /ventas`, `PATCH /ventas/{id}/pagar` | MARÍA |
+| Acto 3: pago y comprobante | pagos | `GET /pagos?ventaId=`, `/pagos/{id}/comprobante` | MARÍA |
+| Acto 4: seguimiento del envío | despacho | `GET /envios?clienteId=`, `/envios/{id}/historial` | MARÍA |
+| Acto 4: vendedor despacha | despacho | `PATCH /envios/{id}/estado` | PROVEEDOR |
+| Acto 5: abrir reclamo | tickets (reclamos) | `POST /tickets` | MARÍA |
+| Acto 6: mediación y resolución | tickets (reclamos) | `POST .../mensajes`, `PATCH .../resolver` | ADMIN (mensajes también PROVEEDOR) |
+| Acto 6: reembolso y aviso | pagos, notificaciones | `GET /pagos/{id}/reembolsos`, `GET /notificaciones` | ADMIN / MARÍA |
+
+> El candado gris junto a un endpoint solo indica que el esquema JWT está declarado;
+> los endpoints públicos (catálogo, reseñas, registro, logins) responden igual sin token.
+> Si un protegido devuelve **401/403**, el token no está cargado en Authorize, está mal
+> pegado (no debe incluir `Bearer `) o pertenece a un rol sin permiso — eso último es el
+> RBAC funcionando (sirve como demo, sección 5).
 
 ## 3. Preparar el escenario (una sola vez)
 
